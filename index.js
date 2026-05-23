@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const jsonfile = require("jsonfile");
 const moment = require("moment");
 const simpleGit = require("simple-git");
@@ -5,7 +7,7 @@ const simpleGit = require("simple-git");
 const FILE_PATH = "./data.json";
 
 const CONFIG = {
-  repositoryUrl: "https://github.com/shub-script/Test.git",
+  repositoryUrl: `https://${process.env.GITHUB_USERNAME}:${process.env.GITHUB_TOKEN}@github.com/shub-script/Test.git`,
   branch: "main",
   entryCount: 200,
 };
@@ -13,8 +15,8 @@ const CONFIG = {
 const git = simpleGit();
 
 function getRandomPastDate() {
-  const weeks = Math.floor(Math.random() * 53); // 0 to 52 weeks ago
-  const days = Math.floor(Math.random() * 7); // 0 to 6 days ago
+  const weeks = Math.floor(Math.random() * 53);
+  const days = Math.floor(Math.random() * 7);
 
   return moment()
     .subtract(weeks, "weeks")
@@ -62,13 +64,20 @@ async function run() {
       entries: buildActivityEntries(CONFIG.entryCount),
     };
 
+    // Write JSON data
     await jsonfile.writeFile(FILE_PATH, data, { spaces: 2 });
 
+    // Git operations
     await git.add([FILE_PATH, "index.js", "package.json"]);
-    await git.commit(`Update activity log with ${CONFIG.entryCount} entries`);
+    await git.commit(
+      `Update activity log with ${CONFIG.entryCount} entries`
+    );
+
     await git.push("origin", CONFIG.branch);
 
-    console.log("Done. Activity log committed and pushed to GitHub.");
+    console.log(
+      "Done. Activity log committed and pushed to GitHub."
+    );
   } catch (error) {
     console.error("Script failed:", error.message);
     process.exit(1);
